@@ -4,6 +4,8 @@ from datetime import date, timedelta
 from math import exp
 from random import Random
 
+from .spec import SPEC
+
 
 _INTERSECTIONS = (
     ("港湾路", "货栈街口", "混行"),
@@ -38,4 +40,22 @@ def demo_rows():
                     "shift": shift, "track": track, "exposure": exposure,
                     "count": _poisson(rng, exposure * rate),
                 })
+    return rows
+
+
+def grouped_rows():
+    """Same observations as :func:`demo_rows`, reported by both source systems.
+
+    Each windowed row becomes one station group (window count 1) with a matching
+    汇总包 and 独立班报 record, so the joint trial reconciles cleanly and fits
+    identically to the windowed data.
+    """
+    rows = []
+    for row in demo_rows():
+        for system in SPEC["grouped_sources"]:
+            rows.append({
+                "date": row["date"], "road": row["road"], "intersection": row["intersection"],
+                "shift": row["shift"], "track": row["track"], "system": system,
+                "windows": 1, "exposure": row["exposure"], "count": row["count"],
+            })
     return rows

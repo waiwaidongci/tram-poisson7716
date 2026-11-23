@@ -33,12 +33,15 @@ export async function results(route, refresh) {
   const result = job.result;
   const analysis = result ? el('section',{class:'analysis','data-testid':'analysis-complete'},
     el('div',{class:'result-head'},p(job.name,'eyeline'),h(2,result.headline),p(result.note,'intro-copy'),
+      result.format === 'grouped' && p('联合试算 · 汇总包与独立班报已逐组对账，分组口径与逐窗观测一致。','subtle'),
       el('div',{class:'actions'},pill(STATUS[job.status],job.status),download,message)),
     metrics(result.metrics),
     result.charts.map(plot),
     (result.sections || []).map(item=>panel(item.title,p(item.text))),
     result.tables.map(item=>panel(item.title,table(item.columns,item.rows,{caption:item.title}))))
-    : panel(job.name,pill(STATUS[job.status],job.status),p(job.error,'feedback'),link('返回调整参数',`#run/${job.dataset_id}`,{class:'quiet'}));
+    : panel(job.name,pill(STATUS[job.status],job.status),
+        el('div',{'data-testid':'stop-reason'},h(3,job.status === 'failed' ? '停算原因' : '运行状态'),p(job.error,'feedback')),
+        link('返回调整参数',`#run/${job.dataset_id}`,{class:'quiet'}));
   const inputs = spec.params.map(param=>el('div',{},el('dt',{},param.label),el('dd',{},value(job.params[param.key]))));
   return el('div',{},el('div',{class:'two-col'},el('div',{class:'wide-panel'},analysis),
     el('aside',{class:'sidebar-panel'},panel('运行来源',history,

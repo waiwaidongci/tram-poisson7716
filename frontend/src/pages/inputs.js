@@ -11,9 +11,13 @@ export async function inputs(route, refresh) {
   const {spec,datasets} = workspace;
   const selected = datasets.find(item => item.id === route.id) || datasets[0];
   const error = feedback();
-  const sample = button('下载示例 CSV', {class:'quiet',onClick:event=>handler(sample,error,()=>workspace.download('/template',spec.sample_name))(event)});
   const detail = selected && await workspace.getDataset(selected.id,route.offset);
-  const columns = spec.fields.map(field => ({key:field.key,label:field.label}));
+  const format = detail?.format || selected?.format || 'windows';
+  const fields = format === 'grouped' ? spec.grouped_fields : spec.fields;
+  const sample = button(format === 'grouped' ? '下载分组统计示例' : '下载逐窗示例', {class:'quiet',onClick:event=>
+    handler(sample,error,()=>workspace.download(`/template?format=${format}`,
+      format === 'grouped' ? spec.grouped_sample_name : spec.sample_name))(event)});
+  const columns = fields.map(field => ({key:field.key,label:field.label}));
   const preview = detail ? panel('批次明细', el('div',{class:'actions'},
     el('label',{for:'dataset-id',class:'sr'}, '选择数据批次'),
     el('select',{id:'dataset-id','aria-label':'选择数据批次',onChange:event=>{location.hash=`#inputs/${event.target.value}`;}},
@@ -39,7 +43,9 @@ export async function inputs(route, refresh) {
   })},field({key:'batch_name',label:'批次名称',type:'string',max_length:120}),
     el('label',{class:'field',for:'source'}, el('span',{},'业务 CSV'),el('input',{id:'source',type:'file',name:'source',accept:'.csv,text/csv',required:true})), submit);
   return el('div',{class:'two-col'},el('div',{class:'wide-panel'},preview),el('aside',{class:'sidebar-panel'},
-    panel('数据导入',p('导入后保留原批次和校验指纹，可用同一份数据复跑。','subtle'),sample,upload,error),
-    panel('字段说明',el('dl',{class:'dictionary'},spec.fields.map(item=>el('div',{},el('dt',{},item.label),
+    panel('数据导入',p('导入后保留原批次和校验指纹，可用同一份数据复跑。','subtle'),
+      p(format === 'grouped' ? '当前为分组统计（联合试算）：汇总包与独立班报须逐组对账。' : '当前为逐窗观测：每行一个路口观测窗口。','subtle'),
+      sample,upload,error),
+    panel('字段说明',el('dl',{class:'dictionary'},fields.map(item=>el('div',{},el('dt',{},item.label),
       el('dd',{},item.key,item.required === false ? ' · 可空' : ' · 必填',item.options ? ` · ${item.options.join(' / ')}` : '')))))));
 }

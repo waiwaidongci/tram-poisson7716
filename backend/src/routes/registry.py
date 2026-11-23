@@ -23,9 +23,11 @@ def spec():
 
 
 @router.get('/template')
-def sample(actor: User = Depends(current)):
-    filename = quote(SPEC['sample_name'])
-    return Response(template(), media_type='text/csv; charset=utf-8',
+def sample(format: str = 'windows', actor: User = Depends(current)):
+    if format not in {'windows', 'grouped'}:
+        raise ValueError('未知的数据格式')
+    filename = quote(SPEC['grouped_sample_name' if format == 'grouped' else 'sample_name'])
+    return Response(template(format), media_type='text/csv; charset=utf-8',
                     headers={'Content-Disposition': f"attachment; filename*=UTF-8''{filename}"})
 
 

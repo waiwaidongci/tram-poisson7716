@@ -44,16 +44,23 @@ def cell(field, raw):
     return value
 
 
+def _format(headers):
+    """Grouped CSVs carry both a source system and window count; windowed CSVs do not."""
+    return 'grouped' if {'system', 'windows'} <= set(headers) else 'windows'
+
+
 def parse_rows(text):
     reader = csv.DictReader(io.StringIO(text.removeprefix('\ufeff'), newline=''), strict=True)
-    fields = SPEC['fields']
-    keys = {field['key'] for field in fields}
-    required = {field['key'] for field in fields if field.get('required', True)}
-    rows = []
     try:
         headers = reader.fieldnames or []
-        if not required <= set(headers) or not set(headers) <= keys or len(headers) != len(set(headers)):
+        if len(headers) != len(set(headers)):
             raise ValueError('CSV 表头与字段说明不符，请下载模板检查列名')
+        fields = SPEC['grouped_fields' if _format(headers) == 'grouped' else 'fields']
+        keys = {field['key'] for field in fields}
+        required = {field['key'] for field in fields if field.get('required', True)}
+        if not required <= set(headers) or not set(headers) <= keys:
+            raise ValueError('CSV 表头与字段说明不符，请下载模板检查列名')
+        rows = []
         for raw in reader:
             if len(rows) >= 5000:
                 raise ValueError('一个数据批次最多导入 5000 行')
@@ -67,7 +74,9 @@ def parse_rows(text):
         raise ValueError(f'CSV 第 {reader.line_num} 行附近格式不正确') from None
     if not rows:
         raise ValueError('CSV 至少需要一行有效数据')
-    if hasattr(analysis, 'validate_rows'):
+    if _format(headers) == 'grouped':
+        analysis.validate_grouped_rows(rows)
+    else:
         analysis.validate_rows(rows)
     return rows
 

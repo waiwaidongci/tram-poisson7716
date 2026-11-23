@@ -17,8 +17,11 @@ export async function runPage(route, refresh) {
   const {spec,datasets,runs} = workspace;
   const scheduling = spec.scheduled && route.scheduling;
   const plans = scheduling ? await workspace.schedules() : [];
+  const selected = datasets.find(item => item.id === route.id) || datasets[0];
+  const grouped = selected?.format === 'grouped';
+  const runLabel = grouped ? '联合试算' : spec.run;
   const error = feedback();
-  const submit = button(`执行${spec.run}`,{type:'submit',class:'primary','data-testid':'start-run'});
+  const submit = button(`执行${runLabel}`,{type:'submit',class:'primary','data-testid':'start-run'});
   const plan = button('保存定时计划',{type:'button',class:'primary','data-testid':'save-schedule'});
   const scheduleFields = scheduling && session.canReview && el('details',{class:'schedule-fields'},
     el('summary',{},'定时站内分发'),
@@ -30,7 +33,7 @@ export async function runPage(route, refresh) {
     onSubmit:handler(submit,error,async event=>{
       const item = await workspace.start(runRequest(new FormData(event.target),spec));
       location.hash = `#results/${item.id}`;
-    })}, datasetField(datasets,route.id),field({key:'name',label:'运行名称',type:'string',max_length:120},`样本${spec.run}`),
+    })}, datasetField(datasets,route.id),field({key:'name',label:'运行名称',type:'string',max_length:120},`样本${runLabel}`),
     el('div',{class:'form-grid'},spec.params.map(param=>field(param))),el('div',{class:'actions'},submit),scheduleFields,error);
   plan.addEventListener('click',handler(plan,error,async()=>{
     if (!form.reportValidity()) return;
@@ -58,7 +61,9 @@ export async function runPage(route, refresh) {
     }},
   ],plans,{caption:'定时计划',empty:'还未配置定时计划。'}));
   return el('div',{class:'two-col'}, el('div',{class:'wide-panel'},
-    panel(spec.run,session.canWrite ? (datasets.length ? form : empty('请先导入数据。','#inputs','前往导入'))
+    panel(runLabel,session.canWrite ? (datasets.length ? el('div',{},
+      grouped && p('该批次为分组统计：提交后先按站、按日、按高峰与混行核对汇总包与独立班报，缺组或数对不上即停算。','subtle'),
+      form) : empty('请先导入数据。','#inputs','前往导入'))
       : p('只读角色可以查看上方业务流程的历史运行。','empty')),
     !scheduling && panel('运行记录',runList),scheduleList),
     el('aside',{class:'sidebar-panel'},panel('计算口径',el('ul',{class:'method-list'},spec.methodology.map(text=>el('li',{},text))))));

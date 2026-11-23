@@ -1,8 +1,10 @@
+from src.domain.analysis import detect_format
 from src.utils.time import iso
 
 
 def dataset(item):
     return {'id': item.id, 'name': item.name, 'filename': item.filename, 'row_count': item.row_count,
+            'format': detect_format(item.rows),
             'checksum': item.checksum, 'author': item.author, 'created_at': iso(item.created_at)}
 
 

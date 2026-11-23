@@ -17,7 +17,8 @@ export function field(config, current = config.default) {
 export function datasetField(datasets, selected) {
   return el('label', {for:'dataset-id', class:'field'}, el('span', {}, '数据批次'),
     el('select', {id:'dataset-id', name:'dataset_id', required:true}, datasets.map(item =>
-      el('option', {value:item.id, selected:String(item.id) === String(selected)}, `${item.name} · ${item.row_count} 行`))));
+      el('option', {value:item.id, selected:String(item.id) === String(selected)},
+        `${item.name} · ${item.row_count} 行${item.format === 'grouped' ? ' · 分组统计' : ''}`))));
 }
 
 export const feedback = () => el('p', {class:'feedback', 'aria-live':'polite', 'data-testid':'feedback'});
