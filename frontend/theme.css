@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+:root {
+  --paper: oklch(96.6% 0.018 32);
+  --ink: oklch(27% 0.039 32);
+  --muted: oklch(44% 0.047 32);
+  --panel: oklch(98.5% 0.01 32);
+  --line: oklch(83.5% 0.038 32);
+  --accent: oklch(73% 0.132 32);
+  --accent-ink: oklch(26% 0.069 32);
+  --accent-soft: oklch(92.5% 0.07 32);
+  --nav: oklch(24% 0.035 32);
+  --nav-ink: oklch(93% 0.039 32);
+  --display: 'Space Mono', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* traffic */
+.header { border-left: 6px solid var(--accent); padding-left:.9rem; } .plot {background:var(--accent-soft)}
+.table-wrap tbody tr:nth-child(even) { background-color: color-mix(in oklch, var(--accent-soft) 22%, var(--panel)); }
+.metrics, .table-wrap {font-variant-numeric:tabular-nums;}
